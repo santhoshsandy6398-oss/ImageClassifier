@@ -37,13 +37,17 @@ transform = transforms.Compose([
                         [0.5, 0.5, 0.5])
 ])
 
-@app.route("/")
-def home():
-    return render_template("index.html")
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
     file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "Empty file"}), 400
+
     img = Image.open(file).convert("RGB")
     img = transform(img).unsqueeze(0)
 
@@ -53,6 +57,7 @@ def predict():
 
     classes = ["Cat", "Dog"]
     return jsonify({"class": classes[predicted.item()]})
+
 
 if __name__ == "__main__":
     import os
